@@ -1,0 +1,4 @@
+interface:
+  display_name: "Annual PD Hours"
+  short_description: "Build and test the AnnualPDHours three-tab web app"
+  brand_color: "#14213D"
