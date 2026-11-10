@@ -27,6 +27,7 @@ export function defaultPlan(
     currentBillabilityPct: 0,
     calculationDate,
     denominator: "scheduled",
+    holidayAllowanceDays: 9,
     observation: "actual",
     holidayOverrides: {},
     floatingHolidays: [1, 2].map((n) => ({
@@ -39,7 +40,7 @@ export function defaultPlan(
     sick: { taken: 0, future: 0 },
     commitments: [
       { id: "hs", name: "H&S training", taken: 0, future: 0 },
-      { id: "admin", name: "Admin / Other non-billable", taken: 0, future: 0 },
+      { id: "admin", name: "Administration", taken: 0, future: 52 },
     ],
   };
 }
@@ -181,8 +182,18 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
         else if (p.legacyCompletedBillableHours !== undefined)
           plan.legacyCompletedBillableHours = p.legacyCompletedBillableHours;
         plan.migrationNotice =
-          "Updated to all scheduled hours: every non-billable hour now counts against the goal. Current billability was converted to preserve estimated completed hours where possible. Older H&S/admin/category totals were placed in Planned because their taken/planned split was unknown; review them.";
+          "Updated to all scheduled hours: every non-billable hour now counts against the goal. Current utilization was converted to preserve estimated completed hours where possible. Older H&S/admin/category totals were placed in Planned because their used/planned split was unknown; review them.";
       } else {
+        if (p.holidayAllowanceDays !== undefined)
+          plan.holidayAllowanceDays = p.holidayAllowanceDays;
+        if (p.simpleInputs)
+          plan.simpleInputs = {
+            holidayDays: p.simpleInputs.holidayDays,
+            vacationHours: p.simpleInputs.vacationHours,
+            sickHours: p.simpleInputs.sickHours,
+            hsHours: p.simpleInputs.hsHours,
+            adminHours: p.simpleInputs.adminHours,
+          };
         if (p.legacyCompletedBillableHours !== undefined)
           plan.legacyCompletedBillableHours = p.legacyCompletedBillableHours;
         if (p.migrationNotice) plan.migrationNotice = p.migrationNotice;
@@ -194,7 +205,11 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
     openDefaultYear && version < 3
       ? DEFAULT_YEAR
       : (value.activeYear as number);
-  const activeYear = requestedActiveYear >= MIN_SELECTABLE_YEAR && requestedActiveYear <= MAX_SELECTABLE_YEAR ? requestedActiveYear : DEFAULT_YEAR;
+  const activeYear =
+    requestedActiveYear >= MIN_SELECTABLE_YEAR &&
+    requestedActiveYear <= MAX_SELECTABLE_YEAR
+      ? requestedActiveYear
+      : DEFAULT_YEAR;
   if (!plans[activeYear]) plans[activeYear] = defaultPlan(activeYear);
   return {
     version: 3,

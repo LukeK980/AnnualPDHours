@@ -17,6 +17,13 @@ export interface FloatingHoliday {
   date: string;
   hours: number;
 }
+export interface SimpleInputs {
+  holidayDays: number;
+  vacationHours: number;
+  sickHours: number;
+  hsHours: number;
+  adminHours: number;
+}
 export interface AnnualPlan {
   year: number;
   hoursPerDay: number;
@@ -25,6 +32,8 @@ export interface AnnualPlan {
   currentBillabilityPct: number;
   legacyCompletedBillableHours?: number;
   migrationNotice?: string;
+  simpleInputs?: SimpleInputs;
+  holidayAllowanceDays?: number;
   calculationDate: string;
   denominator: "scheduled";
   observation: Observation;

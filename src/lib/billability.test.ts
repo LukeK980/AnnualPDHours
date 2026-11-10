@@ -33,8 +33,9 @@ describe("default year and whole-year current billability", () => {
     );
     expect(s.plans[2027].denominator).toBe("scheduled");
     expect(
-      s.plans[2027].commitments.every((c) => c.taken === 0 && c.future === 0),
-    ).toBe(true);
+      s.plans[2027].commitments.find((c) => c.id === "admin")!.future,
+    ).toBe(52);
+    expect(s.plans[2027].commitments.every((c) => c.taken === 0)).toBe(true);
   });
   it("does not remove holidays or leave from the current percentage basis", () => {
     const p = defaultPlan(2026);

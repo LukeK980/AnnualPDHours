@@ -4,7 +4,7 @@ Read `docs/PROJECT_CONTEXT.md`, `docs/FRONTEND_SPEC.md`, and `docs/CALCULATION_R
 
 ## Mission
 
-Build an open-source, browser-only professional development hours calculator hosted on GitHub Pages. The owner's latest request replaces the three-tab navigation with **Hours Calculator** and **PD Magic 8-Ball**. The dashboard is the calculator's results screen after submission, with an edit action to return to the inputs. Do not add authentication, a database, a backend, or paid services without explicit approval.
+Build an open-source, browser-only professional development hours calculator hosted on GitHub Pages. The latest owner feedback defines three tabs: **Simple Calculator**, **Refined Calculator**, and **PD Magic 8-Ball**. Simple Calculator estimates annual non-billable availability; Refined Calculator adds used/future responsibilities and mid-year utilization to estimate available PD. The dashboard is the Refined Calculator's submitted results, with an edit action. Use “utilization,” “used,” and “anticipated sick leave” in the interface. Do not add authentication, a database, a backend, or paid services without explicit approval.
 
 ## Stack
 

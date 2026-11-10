@@ -99,12 +99,12 @@ export default function EightBall({ result }: { result: CalculationResult }) {
           </div>
           <p className="mode-description">
             {mode === "smart"
-              ? "Calculated answers using your annual plan. No external AI."
+              ? "Calculated answers using Refined Calculator. No external AI."
               : "Playful answers from the universe. For entertainment only."}
           </p>
           <div className="capacity-chip">
             <Sparkles size={17} />
-            <span>Available non-billable hours</span>
+            <span>Available PD hours (Refined)</span>
             <strong>{hours(result.availableNonBillableHours)} h</strong>
           </div>
           <form
@@ -177,7 +177,7 @@ export default function EightBall({ result }: { result: CalculationResult }) {
           </div>
           <p className="small-note">
             Smart Mode uses estimated remaining non-billable availability after
-            taken hours and future plans. It does not reserve event dates or
+            used hours and future plans. It does not reserve event dates or
             grant company approval. Answers reflect the plan when you shake;
             shake again after changes.
           </p>

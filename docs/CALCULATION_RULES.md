@@ -2,13 +2,29 @@
 
 These are the owner's requested planning rules, not confirmed Terraphase policy. Observed holiday dates remain configurable. The 2026-11-06 full-schedule convention supersedes the earlier leave-excluding denominator.
 
+## Simple and Refined calculators — 2026-11-10
+
+User-facing terminology is **utilization goal**, **current utilization**, **used**, and **anticipated sick leave**. Legacy TypeScript/JSON field names remain compatible with older backups.
+
+Simple Calculator is independent of date and current utilization. It computes scheduled annual hours with the existing calendar helper, then:
+
+`availableAnnualNonBillable = scheduledHours × (1 − utilizationGoal / 100) − holidayDays × hoursPerDay − annualVacation − anticipatedAnnualSick − annualHs − annualAdmin`.
+
+Defaults are nine paid days (including floating holidays), 52 administration hours for timesheets/expense reports, and zero H&S until entered. Inputs are editable assumptions, not company policy. Clamp the displayed result to zero and separately report any deficit. Example for 2027 Mon–Fri, 8 h/day and 80% goal: scheduled 2,088, non-billable allowance 417.6; holidays 72 and admin 52 leave 293.6 before other inputs. Vacation 120, anticipated sick 24 and H&S 8 leave 141.6.
+
+Refined Calculator retains the mid-year engine below and estimates available **PD** after annual assumptions and other responsibilities. Used entries already reflected in current utilization are not deducted twice; future custom responsibilities (DG/staffing meetings, BD/PD events, etc.) reserve additional time. The explicit Simple→Refined action copies annual assumptions, subtracting preserved used amounts to determine future amounts. It preserves custom responsibilities and refuses transfers that would erase used hours or under-reserve configured holidays.
+
+New Refined plans have an editable annual paid-holiday allowance of nine days and planned admin 52. Calendar/floating dates still book eligible hours once. Add an undated reservation only for `max(0, annualHolidayAllowance − calendarHolidayHours)`, so updating observation dates never double-counts the allowance. Undated allowance remains future during the selected year; after it ends, no future holiday time is inferred. A calendar total above the allowance generates a warning and is not silently reduced. Older backups lacking the optional allowance retain calendar-only behavior. The midyear fixture below explicitly uses that calendar-only behavior.
+
+Optional `simpleInputs` and `holidayAllowanceDays` are validated/sanitized and included in v3 backups. Existing stored plans remain intact until the user explicitly carries new annual assumptions into Refined. Annual goal and work schedule are shared by both calculators.
+
 ## Annual goal: all non-billable time counts
 
 - `scheduledHours`: calendar workdays × configured hours/day. Never assume every year has 2,080 hours.
 - `billableTargetHours = scheduledHours × billabilityGoalPct / 100`.
 - `annualNonBillableBudget = scheduledHours - billableTargetHours`.
 - Vacation, sick leave, paid holidays (including floating holidays), H&S training, admin/other, custom categories and PD all consume this same non-billable allowance. None reduces the billability denominator.
-- Annual category total = taken hours + future planned hours. Defaults for H&S and Admin/Other are zero; enter actual and expected values.
+- Annual category total = used hours + future planned hours. New-plan H&S starts at zero and administration at 52 future hours; all assumptions are editable.
 - Example: 2,080 scheduled hours and an 80% goal = 1,664 required billable hours and 416 non-billable hours. Holidays 72 + vacation 120 + sick 24 + training/admin 144 consume 360, leaving 56 available, before any additional already-used non-billable time implied by current billability.
 
 ## Midyear usage and remaining availability

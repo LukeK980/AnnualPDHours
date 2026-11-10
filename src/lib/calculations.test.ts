@@ -5,7 +5,14 @@ import {
   fixedHolidays,
   observedDate,
 } from "./calculations";
-import { defaultPlan, dateString } from "./plan";
+import { defaultPlan as createDefaultPlan, dateString } from "./plan";
+
+function defaultPlan(year = 2027, today?: Date) {
+  const p = createDefaultPlan(year, today);
+  delete p.holidayAllowanceDays;
+  p.commitments.find((c) => c.id === "admin")!.future = 0;
+  return p;
+}
 
 describe("every non-billable hour counts against the goal", () => {
   it("uses the full 2080-hour fixture: 80% = 1664 billable and 416 non-billable", () => {

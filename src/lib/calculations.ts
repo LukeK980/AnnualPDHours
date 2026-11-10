@@ -82,14 +82,17 @@ export function annualCapacity(
     leaveOverallocation: Math.max(0, holidays + vacation + sick - scheduled),
   };
 }
-export function calculate(plan: AnnualPlan): CalculationResult {
-  const errors = validatePlan(plan);
-  if (errors.length) throw new Error(errors.join(" "));
+export function scheduledWorkdays(plan: AnnualPlan) {
   const yearDate = new Date(plan.year, 0, 1);
-  const workdays = eachDayOfInterval({
+  return eachDayOfInterval({
     start: startOfYear(yearDate),
     end: endOfYear(yearDate),
   }).filter((d) => plan.workingDays.includes(getDay(d)));
+}
+export function calculate(plan: AnnualPlan): CalculationResult {
+  const errors = validatePlan(plan);
+  if (errors.length) throw new Error(errors.join(" "));
+  const workdays = scheduledWorkdays(plan);
   const scheduledHours = workdays.length * plan.hoursPerDay;
   const remainingWorkdays = workdays.filter(
     (d) => dateString(d) >= plan.calculationDate,
@@ -147,7 +150,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
         (h.status !== "taken" && h.date < plan.calculationDate))
     )
       warnings.push(
-        `${name}: status and date conflict. Taken holidays are never deducted from future hours; dated holidays before the calculation date are excluded from the forecast.`,
+        `${name}: status and date conflict. Used holidays are never deducted from future hours; dated holidays before the calculation date are excluded from the forecast.`,
       );
     holidays.push({
       id: h.id,
@@ -157,6 +160,25 @@ export function calculate(plan: AnnualPlan): CalculationResult {
       futureHours,
       status: h.status,
     });
+  }
+  const calendarHolidayHours = holidays.reduce((sum, h) => sum + h.hours, 0);
+  if (plan.holidayAllowanceDays !== undefined) {
+    const allowanceHours = plan.holidayAllowanceDays * plan.hoursPerDay;
+    const unassignedHours = Math.max(0, allowanceHours - calendarHolidayHours);
+    if (unassignedHours > 0)
+      holidays.push({
+        id: "holiday-allowance",
+        name: "Undated paid holiday allowance",
+        date: "",
+        status: "not_taken",
+        hours: unassignedHours,
+        futureHours:
+          plan.calculationDate <= `${plan.year}-12-31` ? unassignedHours : 0,
+      });
+    if (calendarHolidayHours > allowanceHours + 0.01)
+      warnings.push(
+        "Configured holiday dates exceed the annual paid holiday allowance. The larger calendar total is reserved; review the allowance or holiday dates.",
+      );
   }
   const holidayHours = holidays.reduce((sum, h) => sum + h.hours, 0);
   const futureHolidayHours = holidays.reduce(
@@ -258,9 +280,9 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     inputConflictHours < 0.01;
   if (inputConflictHours > 0.01)
     warnings.push(
-      "Taken non-billable entries exceed the total implied by current billability by " +
+      "Used non-billable entries exceed the total implied by current utilization by " +
         inputConflictHours.toFixed(1) +
-        " hours. Check your percentage, date, and taken entries. Available hours use the larger taken amount conservatively.",
+        " hours. Check your percentage, date, and used entries. Available hours use the larger used amount conservatively.",
     );
   if (plannedNonBillableHours > remainingScheduledHours)
     warnings.push(
@@ -277,7 +299,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     ) > 0.01
   )
     warnings.push(
-      "The original saved completed-hours value differs from this schedule-based estimate. Review current billability; original hours remain in your backup.",
+      "The original saved completed-hours value differs from this schedule-based estimate. Review current utilization; original hours remain in your backup.",
     );
   const unitemizedChartHours = Math.max(
     0,
@@ -295,7 +317,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
       name:
         estimatedCompletedBillableHours > annual.billableTargetHours
           ? "Billable work (completed above goal)"
-          : "Billable work (annual goal)",
+          : "Billable work (utilization goal)",
       hours: Math.max(
         annual.billableTargetHours,
         estimatedCompletedBillableHours,
@@ -341,7 +363,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     inputConflictHours < 0.01
   )
     warnings.push(
-      "Annual entries and the calculation date do not reconcile to scheduled hours. Check taken/planned status, especially for past years.",
+      "Annual entries and the calculation date do not reconcile to scheduled hours. Check used/planned status, especially for past years.",
     );
   return {
     ...annual,

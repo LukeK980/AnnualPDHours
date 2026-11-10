@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
+  Calculator,
   Check,
   GraduationCap,
   Moon,
@@ -24,12 +25,14 @@ import {
 import type { AnnualPlan, SavedState } from "./lib/types";
 import Dashboard from "./components/Dashboard";
 import Planner from "./components/Planner";
+import SimpleCalculator from "./components/SimpleCalculator";
 import EightBall from "./components/EightBall";
 import Settings from "./components/Settings";
 import { Notice } from "./components/Fields";
 
 const tabs = [
-  { label: "Hours Calculator", icon: CalendarDays },
+  { label: "Simple Calculator", icon: Calculator },
+  { label: "Refined Calculator", icon: CalendarDays },
   { label: "PD Magic 8-Ball", icon: Sparkles },
 ] as const;
 
@@ -125,7 +128,7 @@ export default function App() {
   };
   const selectTab = (index: number) => {
     setActive(index);
-    if (index === 0) setShowResults(false);
+    if (index <= 1) setShowResults(false);
     window.scrollTo({ top: 0, behavior: "instant" });
   };
   const changePlan = (p: AnnualPlan) =>
@@ -175,7 +178,10 @@ export default function App() {
                 value={state.activeYear}
                 onChange={(e) => changeYear(Number(e.target.value))}
               >
-                {Array.from({ length: MAX_SELECTABLE_YEAR - MIN_SELECTABLE_YEAR + 1 }, (_, i) => MIN_SELECTABLE_YEAR + i).map((year) => (
+                {Array.from(
+                  { length: MAX_SELECTABLE_YEAR - MIN_SELECTABLE_YEAR + 1 },
+                  (_, i) => MIN_SELECTABLE_YEAR + i,
+                ).map((year) => (
                   <option key={year}>{year}</option>
                 ))}
               </select>
@@ -219,6 +225,17 @@ export default function App() {
       </div>
       <div className="app-shell">
         <main id="main" tabIndex={-1}>
+          {active === 0 && (
+            <SimpleCalculator
+              key={plan.year}
+              plan={plan}
+              onChange={changePlan}
+              onRefine={(next) => {
+                changePlan(next);
+                selectTab(1);
+              }}
+            />
+          )}
           {storageMessage && (
             <Notice tone="warning">
               {storageMessage}{" "}
@@ -227,14 +244,14 @@ export default function App() {
               </button>
             </Notice>
           )}
-          {active === 0 && showResults && (
+          {active === 1 && showResults && (
             <Dashboard
               plan={plan}
               result={result}
-              onPlan={() => selectTab(0)}
+              onPlan={() => selectTab(1)}
             />
           )}
-          {active === 0 && !showResults && (
+          {active === 1 && !showResults && (
             <Planner
               key={plan.year}
               plan={plan}
@@ -249,7 +266,7 @@ export default function App() {
               }}
             />
           )}
-          {active === 1 && <EightBall result={result} />}
+          {active === 2 && <EightBall result={result} />}
         </main>
         <footer>
           <span>

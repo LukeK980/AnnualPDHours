@@ -8,7 +8,7 @@ A fully open-source, zero-backend web app for understanding annual non-billable 
 
 ## Non-negotiable decisions
 
-- Two navigation entries: **Hours Calculator** and **PD Magic 8-Ball**. The dashboard is the calculator's results view after submission, with an edit action. This supersedes the original three-tab requirement at the owner's request.
+- Three navigation entries: **Simple Calculator**, **Refined Calculator**, and **PD Magic 8-Ball**. Simple opens first and calculates a full-year non-billable budget. Refined retains the submitted dashboard/results flow for available PD and mid-year forecasting.
 - Percentage-based billability goal (not a fixed number entered by the user).
 - Dashboard: annual allocation donut, non-billable and PD capacity, completed vs required billable hours, remaining weekly billable target based on calculation date.
 - Hours Calculator: default year **2027**, work schedule, annual goal % and current year-to-date billability % using **all scheduled hours**, taken/planned vacation and sick leave, taken/planned H&S and Admin/Other, optional custom categories, and holidays/floating plans. Completed billable hours and total used non-billable time are estimated from current billability; entered taken hours are reconciled without double-counting.
@@ -48,6 +48,11 @@ Modern light/dark responsive SaaS dashboard (navy/teal accents). Emphasize compr
 See `IMPLEMENTATION_PLAN.md`. Add dated entries below whenever a material decision is made.
 
 ## Decision log
+
+- 2026-11-10: Implemented the annotated screenshot feedback as the latest UI direction: Simple Calculator is a new annual-budget tab, existing Hours Calculator becomes Refined Calculator, and Magic 8-Ball remains Classic by default. User-facing “billability” becomes “utilization,” “taken” becomes “used,” and future sick leave is “anticipated.” Paid holidays precede vacation/sick leave. The confusing usage note is replaced with: used hours are already reflected in current utilization; future responsibilities are reserved separately.
+- 2026-11-10: Simple Calculator uses full scheduled annual hours × (1 − utilization goal), then subtracts nine paid days (including floating holidays), annual vacation, anticipated sick leave, required H&S and assumed admin. Nine days and 52 annual admin hours are editable user-requested planning assumptions, not confirmed company policy. Required H&S defaults to zero until entered. No current utilization/date is needed for the Simple annual result.
+- 2026-11-10: New Refined plans default to a nine-day paid-holiday allowance and 52 planned administration hours. Calendar dates still determine timing and observation remains configurable. If scheduled dates reserve fewer hours than the annual allowance, the difference is reserved once as undated future holiday time; moving observed dates into the work schedule reduces that difference rather than adding hours twice. If calendar reservations exceed the allowance, reserve the larger calendar amount and warn. Existing saved plans without an allowance retain date-only holiday accounting.
+- 2026-11-10: Optional per-year Simple inputs and holiday allowance extend the validated v3 backup format without dropping older plans. Existing annual totals initialize Simple inputs; administration starts at 52 if no admin amount exists. Simple and Refined share schedule/year/goal. Simple annual assumptions are carried to Refined through an explicit action, preserving already-used hours and extra responsibilities. Carrying inputs is blocked if annual totals are below used values or the allowance is below configured holiday reservations. Older Refined plans are not automatically overwritten. Zero is retained when explicitly saved as a Simple assumption.
 
 - 2026-11-06: PD Magic 8-Ball opens in Classic Mode by default. Smart Mode remains selectable; calculator navigation and calculation rules are unchanged.
 

@@ -40,7 +40,7 @@ export default function Dashboard({
   );
   const cards = [
     {
-      label: "Available non-billable hours",
+      label: "Available PD hours",
       value: hours(r.availableNonBillableHours),
       unit: "hours remaining",
       sub: "After used hours and future plans",
@@ -82,8 +82,11 @@ export default function Dashboard({
     <>
       <div className="page-heading">
         <div>
-          <h1>Your results</h1>
-          <p>Your annual goal and the hours you can still use this year.</p>
+          <h1>Your refined results</h1>
+          <p>
+            Your PD availability after annual assumptions, used time, and
+            additional responsibilities.
+          </p>
         </div>
         <button className="button secondary" onClick={onPlan}>
           <ArrowLeft size={17} /> Edit my hours
@@ -96,7 +99,7 @@ export default function Dashboard({
         </span>
         <span className="context-assumption">
           {hours(plan.currentBillabilityPct)}% current ·{" "}
-          {hours(plan.billabilityGoalPct)}% annual goal
+          {hours(plan.billabilityGoalPct)}% utilization goal
         </span>
       </div>
       <div className="metrics">
@@ -132,10 +135,10 @@ export default function Dashboard({
       )}
       {r.inputConflictHours > 0.01 && (
         <Notice tone="warning">
-          <strong>Your taken entries and current billability disagree.</strong>{" "}
+          <strong>Your used entries and current utilization disagree.</strong>{" "}
           The entries are {hours(r.inputConflictHours)} hours higher than the
           non-billable time implied by your percentage. Check your percentage,
-          date, and taken hours. The larger used total is reserved
+          date, and used hours. The larger used total is reserved
           conservatively; the chart is paused until these reconcile.
         </Notice>
       )}
@@ -200,9 +203,7 @@ export default function Dashboard({
                     <strong>
                       {hours(selected?.hours ?? r.availableNonBillableHours)}
                     </strong>
-                    <span>
-                      {selected ? "selected hours" : "available non-billable"}
-                    </span>
+                    <span>{selected ? "selected hours" : "available PD"}</span>
                   </div>
                 </>
               ) : (
@@ -210,7 +211,7 @@ export default function Dashboard({
                   <strong>Review the plan</strong>
                   <span>
                     {r.inputConflictHours > 0.01
-                      ? "Taken hours conflict with billability"
+                      ? "Used hours conflict with utilization"
                       : r.overallocationHours > 0.01
                         ? "Non-billable allowance exceeded"
                         : "Annual entries need to reconcile"}
@@ -247,11 +248,11 @@ export default function Dashboard({
             </div>
           </div>
           <p className="small-note">
-            The chart uses all scheduled hours, so an 80% annual goal is an 80%
-            billable slice. If estimated completed billable hours already exceed
-            the annual target, the slice shows that higher completed amount.
-            Overallocated or conflicting plans are shown as amounts without a
-            misleading pie.
+            The chart uses all scheduled hours, so an 80% utilization goal is an
+            80% billable slice. If estimated completed billable hours already
+            exceed the annual target, the slice shows that higher completed
+            amount. Overallocated or conflicting plans are shown as amounts
+            without a misleading pie.
           </p>
         </section>
         <div className="dashboard-side">
@@ -286,11 +287,11 @@ export default function Dashboard({
                 <dd>{hours(r.scheduledHours)} h</dd>
               </div>
               <div>
-                <dt>Annual billability goal</dt>
+                <dt>Utilization goal</dt>
                 <dd>{hours(plan.billabilityGoalPct)}%</dd>
               </div>
               <div>
-                <dt>Current year-to-date billability</dt>
+                <dt>Current year-to-date utilization</dt>
                 <dd>{hours(plan.currentBillabilityPct)}%</dd>
               </div>
               <div>
@@ -299,10 +300,10 @@ export default function Dashboard({
               </div>
             </dl>
             <p className="small-note">
-              Current billability × {hours(r.elapsedScheduledHours)} scheduled
+              Current utilization × {hours(r.elapsedScheduledHours)} scheduled
               hours before the calculation date ={" "}
               {hours(r.estimatedCompletedBillableHours)} estimated completed
-              billable hours. Holidays and taken leave stay in that denominator.
+              billable hours. Holidays and used leave stay in that denominator.
               Progress toward the annual target is a separate percentage.
             </p>
           </section>
@@ -356,13 +357,13 @@ export default function Dashboard({
           capped by remaining scheduled time.
         </p>
         <details className="calculator-details">
-          <summary>See taken and planned hour details</summary>
+          <summary>See used and planned hour details</summary>
           <div className="budget-table-wrap">
             <table className="budget-table">
               <thead>
                 <tr>
                   <th scope="col">Category</th>
-                  <th scope="col">Taken</th>
+                  <th scope="col">Used</th>
                   <th scope="col">Planned</th>
                   <th scope="col">Annual total</th>
                 </tr>
@@ -398,8 +399,8 @@ export default function Dashboard({
             </table>
           </div>
           <p className="calculator-help">
-            Itemized taken hours: {hours(r.knownTakenNonBillableHours)}. Current
-            billability implies {hours(r.estimatedUsedNonBillableHours)} used
+            Itemized used hours: {hours(r.knownTakenNonBillableHours)}. Current
+            utilization implies {hours(r.estimatedUsedNonBillableHours)} used
             non-billable hours in total, including these entries. The additional{" "}
             {hours(r.unitemizedTakenNonBillableHours)} hours are estimated
             already-used time not itemized above (for example, prior PD). We use
@@ -461,12 +462,12 @@ export default function Dashboard({
           <Notice tone="warning">
             Your remaining billable target exceeds available future time by{" "}
             {hours(shortfall)} hours. Reduce future non-billable plans or review
-            the goal and current billability.
+            the goal and current utilization.
           </Notice>
         )}
         <p className="small-note">
           Includes the calculation day. Only future leave, holidays, H&S and
-          admin/other plans reduce future capacity; taken entries are not
+          admin/other plans reduce future capacity; used entries are not
           deducted again. One equivalent workweek is{" "}
           {hours(r.standardWeeklyHours)} available scheduled hours. Undated
           plans use aggregate estimates.

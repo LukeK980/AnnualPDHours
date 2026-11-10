@@ -25,7 +25,7 @@ export function smartAnswer(
       result.leaveOverallocation > 0 ||
       result.inputConflictHours > 0.01
     )
-      return `Review the non-billable deficit or conflicting taken entries before budgeting a ${hours}-hour activity.`;
+      return `Review the non-billable deficit or conflicting used entries before budgeting a ${hours}-hour activity.`;
     return hours <= result.availableNonBillableHours
       ? `A ${hours}-hour activity fits your remaining non-billable budget of ${result.availableNonBillableHours.toFixed(1)} hours, leaving ${(result.availableNonBillableHours - hours).toFixed(1)} hours. This estimate accounts for used non-billable hours and future reservations. It does not grant company approval or reserve an event date.`
       : `A ${hours}-hour activity exceeds your remaining non-billable budget of ${result.availableNonBillableHours.toFixed(1)} hours by ${(hours - result.availableNonBillableHours).toFixed(1)} hours. Try a shorter activity or adjust your plan.`;

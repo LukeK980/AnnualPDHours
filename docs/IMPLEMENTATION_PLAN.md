@@ -1,5 +1,9 @@
 # AnnualPDHours — Build Order and Acceptance Criteria
 
+## Current increment — 2026-11-10
+
+Acceptance: add Simple Calculator for annual non-billable hours, rename the existing calculator Refined Calculator for PD after other responsibilities, use utilization/used/anticipated terminology, put holidays before vacation/sick leave, replace the unclear double-counting note, and use editable nine-day holiday / 52-hour admin assumptions. Preserve mid-year results, the 2026–2036 year control, 2027 default, Classic 8-Ball, accessibility, local auto-save and validated exports. Pure annual calculations, safe transfer and allowance accounting were implemented/tested before UI changes. Earlier two-tab and zero-admin defaults below are historical and superseded. Validation passed: lint, TypeScript/production build, and all 45 automated tests. Production-browser checks passed for annual and mid-year results, safe transfer preserving used hours and additional responsibilities, JSON export/import, localStorage reload, Classic default, and light/dark layouts at 768/375/320px. Screenshots were visually reviewed. No push or deployment was performed.
+
 ## Current increment — 2026-11-06
 
 Owner-requested acceptance criteria implemented: default new year 2027; full scheduled-hours billability denominator; exact goal percentage in the annual pie; taken/planned H&S and Admin/Other alongside vacation, sick leave, holidays and visible floating plans; annual non-billable allowance and remaining availability after used time/future reservations; remaining-year billable shortfall and weekly requirement after all planned non-billable hours. V3 migration preserves older plans and provides review notices for converted percentages and previously unsplit category totals. This supersedes earlier net-working-hours, annual-PD-only and v2 model references below.
@@ -76,9 +80,8 @@ Next release step: review the local application and authorize the push/deploymen
 
 ## Definition of done
 
-- Two top-level navigation entries; dashboard results follow calculator submission.
+- Simple Calculator, Refined Calculator, and PD Magic 8-Ball navigation; refined results follow submission.
 - Changing planner values updates dashboard and Smart 8-Ball without refreshing.
 - Reopening same browser restores plan correctly; other browser/device does not inherit it.
 - Build succeeds without secrets, paid services, remote APIs, or backend.
 - Calculation assumptions visible; business rules still unconfirmed are not presented as official.
-

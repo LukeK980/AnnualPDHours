@@ -25,6 +25,22 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
   if (!isObject(value)) return ["Plan must be an object."];
   const errors: string[] = [];
   if (
+    value.holidayAllowanceDays !== undefined &&
+    !finite(value.holidayAllowanceDays, 366)
+  )
+    errors.push("Paid holiday allowance must be between 0 and 366 days.");
+  if (
+    value.simpleInputs !== undefined &&
+    (!isObject(value.simpleInputs) ||
+      !finite(value.simpleInputs.holidayDays, 366) ||
+      ["vacationHours", "sickHours", "hsHours", "adminHours"].some(
+        (key) => !finite((value.simpleInputs as Record<string, unknown>)[key]),
+      ))
+  )
+    errors.push(
+      "Simple Calculator assumptions must contain valid nonnegative hours and holiday days.",
+    );
+  if (
     !Number.isInteger(value.year) ||
     !finite(value.year, 2100) ||
     (value.year as number) < 1900
@@ -40,7 +56,7 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
   )
     errors.push("Choose at least one distinct working weekday.");
   if (!finite(value.billabilityGoalPct, 100))
-    errors.push("Billability goal must be between 0% and 100%.");
+    errors.push("Utilization goal must be between 0% and 100%.");
   if (
     version === 1
       ? !finite(value.completedBillableHours)
@@ -49,7 +65,7 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
     errors.push(
       version === 1
         ? "Completed billable hours must be a nonnegative number."
-        : "Current billability must be between 0% and 100%.",
+        : "Current utilization must be between 0% and 100%.",
     );
   if (
     value.legacyCompletedBillableHours !== undefined &&
@@ -138,7 +154,7 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
     )
   )
     errors.push(
-      "Provide H&S and Admin/Other plus valid unique categories, with nonnegative taken/planned hours (maximum 50).",
+      "Provide H&S and Admin/Other plus valid unique categories, with nonnegative used/planned hours (maximum 50).",
     );
   return errors;
 }

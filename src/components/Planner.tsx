@@ -70,10 +70,10 @@ export default function Planner({
     >
       <div className="page-heading">
         <div>
-          <h1>Hours calculator</h1>
+          <h1>Refined Calculator</h1>
           <p>
-            Plan your taken and future hours, then see your remaining
-            non-billable time.
+            Refine your annual assumptions with used hours and additional
+            responsibilities to find your available PD time.
           </p>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function Planner({
         <div className="planner-sections">
           <section className="card form-section" aria-labelledby="work-heading">
             <h2 id="work-heading">
-              <span className="step-dot">1</span> Work & billability goal
+              <span className="step-dot">1</span> Work & utilization goal
             </h2>
             <div className="fields-grid">
               <NumberField
@@ -102,14 +102,14 @@ export default function Planner({
                 }
               />
               <NumberField
-                label="Annual billability goal"
+                label="Utilization goal"
                 value={plan.billabilityGoalPct}
                 max={100}
                 unit="%"
                 onChange={(billabilityGoalPct) => patch({ billabilityGoalPct })}
               />
               <NumberField
-                label="Current billability"
+                label="Current utilization"
                 value={plan.currentBillabilityPct}
                 unit="%"
                 max={100}
@@ -162,8 +162,8 @@ export default function Planner({
               </fieldset>
             </details>
             <p className="calculator-help">
-              Current billability is your year-to-date percentage of all
-              scheduled hours. An 80% annual goal leaves 20% for every
+              Current utilization is your year-to-date percentage of all
+              scheduled hours. An 80% utilization goal leaves 20% for every
               non-billable hour, including vacation, sick leave, holidays,
               training, and admin/other.
             </p>
@@ -182,153 +182,11 @@ export default function Planner({
           </section>
           <section
             className="card form-section"
-            aria-labelledby="leave-heading"
-          >
-            <h2 id="leave-heading">
-              <span className="step-dot">2</span> Vacation & sick leave
-            </h2>
-            <p className="calculator-help">
-              Use hours, not days. Leave anything you don't use at 0.
-            </p>
-            {(["vacation", "sick"] as const).map((key) => (
-              <div className="timeoff-group" key={key}>
-                <div className="mini-heading">
-                  <h3>{key === "vacation" ? "Vacation" : "Sick leave"}</h3>
-                  <span>
-                    {hours(key === "vacation" ? r.vacationHours : r.sickHours)}{" "}
-                    hours total
-                  </span>
-                </div>
-                <div className="fields-grid leave-inputs">
-                  <NumberField
-                    label={`${key === "vacation" ? "Vacation" : "Sick leave"} already taken`}
-                    displayLabel="Already taken"
-                    value={plan[key].taken}
-                    onChange={(taken) =>
-                      patch({ [key]: { ...plan[key], taken } })
-                    }
-                  />
-                  <NumberField
-                    label={`Expected future ${key === "vacation" ? "vacation" : "sick leave"}`}
-                    displayLabel="Planned for the rest of the year"
-                    value={plan[key].future}
-                    onChange={(future) =>
-                      patch({ [key]: { ...plan[key], future } })
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-            <p className="calculator-help">
-              Keep paid holidays separate. Only planned leave is deducted from
-              your remaining-year forecast.
-            </p>
-          </section>
-          <section
-            className="card form-section"
-            aria-labelledby="other-heading"
-          >
-            <h2 id="other-heading">
-              <span className="step-dot">3</span> H&S training & admin / other
-            </h2>
-            <p className="calculator-help">
-              Split these hours into already taken and still planned. Taken
-              hours are included in your current billability total, not added
-              twice.
-            </p>
-            <div className="commitment-groups">
-              {plan.commitments.map((c) => (
-                <div className="timeoff-group" key={c.id}>
-                  <div className="mini-heading">
-                    <h3>{c.name}</h3>
-                    <span>{hours(c.taken + c.future)} hours total</span>
-                  </div>
-                  {!standardIds.has(c.id) && (
-                    <TextField
-                      label={"Name for " + c.name}
-                      value={c.name}
-                      onChange={(name) =>
-                        patch({
-                          commitments: plan.commitments.map((x) =>
-                            x.id === c.id ? { ...x, name } : x,
-                          ),
-                        })
-                      }
-                    />
-                  )}
-                  <div className="fields-grid leave-inputs">
-                    <NumberField
-                      label={c.name + " already taken"}
-                      displayLabel="Already taken"
-                      value={c.taken}
-                      onChange={(taken) =>
-                        patch({
-                          commitments: plan.commitments.map((x) =>
-                            x.id === c.id ? { ...x, taken } : x,
-                          ),
-                        })
-                      }
-                    />
-                    <NumberField
-                      label={"Planned " + c.name}
-                      displayLabel="Planned for the rest of the year"
-                      value={c.future}
-                      onChange={(future) =>
-                        patch({
-                          commitments: plan.commitments.map((x) =>
-                            x.id === c.id ? { ...x, future } : x,
-                          ),
-                        })
-                      }
-                    />
-                  </div>
-                  {!standardIds.has(c.id) && (
-                    <button
-                      type="button"
-                      className="text-button delete-button"
-                      aria-label={"Delete " + c.name}
-                      onClick={() =>
-                        patch({
-                          commitments: plan.commitments.filter(
-                            (x) => x.id !== c.id,
-                          ),
-                        })
-                      }
-                    >
-                      <Trash2 size={15} /> Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="text-button"
-              disabled={plan.commitments.length >= 50}
-              onClick={() =>
-                patch({
-                  commitments: [
-                    ...plan.commitments,
-                    {
-                      id: crypto.randomUUID(),
-                      name: `Custom category ${plan.commitments.length - 1}`,
-                      taken: 0,
-                      future: 0,
-                    },
-                  ],
-                })
-              }
-            >
-              <Plus size={16} /> Add another category
-            </button>
-          </section>
-          <section
-            className="card form-section"
             aria-labelledby="holiday-heading"
           >
             <div className="section-heading">
               <h2 id="holiday-heading">
-                <span className="step-dot">4</span> Paid holidays
+                <span className="step-dot">2</span> Paid holidays
               </h2>
               <span className="holiday-total">
                 {hours(r.holidayHours)} hours included
@@ -338,6 +196,27 @@ export default function Planner({
               The seven named holidays are calculated for {plan.year}. Set the
               status of your two floating holidays below.
             </p>
+            <details className="calculator-details">
+              <summary>Annual paid holiday allowance</summary>
+              <NumberField
+                label="Paid holiday allowance in Refined"
+                value={
+                  plan.holidayAllowanceDays ?? r.holidayHours / plan.hoursPerDay
+                }
+                unit="days / year"
+                max={366}
+                onChange={(holidayAllowanceDays) =>
+                  patch({ holidayAllowanceDays })
+                }
+              />
+              <p className="calculator-help">
+                Nine days includes both floating holidays. Any allowance not
+                assigned to scheduled dates is reserved as undated future time;
+                adjusting observation dates does not add the allowance twice.
+                This is a planning assumption, not an official observation
+                policy.
+              </p>
+            </details>
             {plan.floatingHolidays.map((h, i) => (
               <div className="fields-grid" key={h.id}>
                 <SelectField
@@ -347,9 +226,9 @@ export default function Planner({
                     floatingPatch(h.id, { status: value as FloatingStatus })
                   }
                 >
-                  <option value="not_taken">Not Taken</option>
+                  <option value="not_taken">Not Used</option>
                   <option value="planned">Planned</option>
-                  <option value="taken">Taken</option>
+                  <option value="taken">Used</option>
                 </SelectField>
                 <DateField
                   label={"Floating #" + (i + 1) + " date (optional)"}
@@ -363,7 +242,7 @@ export default function Planner({
             ))}
             <p className="calculator-help">
               {observationLabels[plan.observation]} Undated floating holidays
-              reserve up to one workday each; Taken holidays aren't deducted
+              reserve up to one workday each; Used holidays aren't deducted
               again from future hours.
             </p>
             <details className="calculator-details">
@@ -447,6 +326,156 @@ export default function Planner({
                 zero.
               </p>
             </details>
+          </section>
+          <section
+            className="card form-section"
+            aria-labelledby="leave-heading"
+          >
+            <h2 id="leave-heading">
+              <span className="step-dot">3</span> Vacation & sick leave
+            </h2>
+            <p className="calculator-help">
+              Use hours, not days. Leave anything you don't use at 0.
+            </p>
+            {(["vacation", "sick"] as const).map((key) => (
+              <div className="timeoff-group" key={key}>
+                <div className="mini-heading">
+                  <h3>{key === "vacation" ? "Vacation" : "Sick leave"}</h3>
+                  <span>
+                    {hours(key === "vacation" ? r.vacationHours : r.sickHours)}{" "}
+                    hours total
+                  </span>
+                </div>
+                <div className="fields-grid leave-inputs">
+                  <NumberField
+                    label={`${key === "vacation" ? "Vacation" : "Sick leave"} already used`}
+                    displayLabel="Already used"
+                    value={plan[key].taken}
+                    onChange={(taken) =>
+                      patch({ [key]: { ...plan[key], taken } })
+                    }
+                  />
+                  <NumberField
+                    label={
+                      key === "vacation"
+                        ? "Planned vacation"
+                        : "Anticipated sick leave"
+                    }
+                    displayLabel={
+                      key === "vacation"
+                        ? "Planned for the rest of the year"
+                        : "Anticipated for the rest of the year"
+                    }
+                    value={plan[key].future}
+                    onChange={(future) =>
+                      patch({ [key]: { ...plan[key], future } })
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+            <p className="calculator-help">
+              Only future leave reduces your remaining-year forecast.
+            </p>
+          </section>
+          <section
+            className="card form-section"
+            aria-labelledby="other-heading"
+          >
+            <h2 id="other-heading">
+              <span className="step-dot">4</span> H&S training & administration
+            </h2>
+            <p className="calculator-help">
+              Used hours are already reflected in your current utilization
+              percentage. Future hours are reserved separately. Add DG meetings,
+              staffing meetings, or BD/PD events that are not already included
+              in your other inputs.
+            </p>
+            <div className="commitment-groups">
+              {plan.commitments.map((c) => (
+                <div className="timeoff-group" key={c.id}>
+                  <div className="mini-heading">
+                    <h3>{c.name}</h3>
+                    <span>{hours(c.taken + c.future)} hours total</span>
+                  </div>
+                  {!standardIds.has(c.id) && (
+                    <TextField
+                      label={"Name for " + c.name}
+                      value={c.name}
+                      onChange={(name) =>
+                        patch({
+                          commitments: plan.commitments.map((x) =>
+                            x.id === c.id ? { ...x, name } : x,
+                          ),
+                        })
+                      }
+                    />
+                  )}
+                  <div className="fields-grid leave-inputs">
+                    <NumberField
+                      label={c.name + " already used"}
+                      displayLabel="Already used"
+                      value={c.taken}
+                      onChange={(taken) =>
+                        patch({
+                          commitments: plan.commitments.map((x) =>
+                            x.id === c.id ? { ...x, taken } : x,
+                          ),
+                        })
+                      }
+                    />
+                    <NumberField
+                      label={"Planned " + c.name}
+                      displayLabel="Planned for the rest of the year"
+                      value={c.future}
+                      onChange={(future) =>
+                        patch({
+                          commitments: plan.commitments.map((x) =>
+                            x.id === c.id ? { ...x, future } : x,
+                          ),
+                        })
+                      }
+                    />
+                  </div>
+                  {!standardIds.has(c.id) && (
+                    <button
+                      type="button"
+                      className="text-button delete-button"
+                      aria-label={"Delete " + c.name}
+                      onClick={() =>
+                        patch({
+                          commitments: plan.commitments.filter(
+                            (x) => x.id !== c.id,
+                          ),
+                        })
+                      }
+                    >
+                      <Trash2 size={15} /> Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="text-button"
+              disabled={plan.commitments.length >= 50}
+              onClick={() =>
+                patch({
+                  commitments: [
+                    ...plan.commitments,
+                    {
+                      id: crypto.randomUUID(),
+                      name: `Additional responsibility ${plan.commitments.length - 1}`,
+                      taken: 0,
+                      future: 0,
+                    },
+                  ],
+                })
+              }
+            >
+              <Plus size={16} /> Add a responsibility
+            </button>
           </section>
           <p className="calculator-help goal-rule">
             Calculation rule: your goal applies to all {hours(r.scheduledHours)}{" "}
