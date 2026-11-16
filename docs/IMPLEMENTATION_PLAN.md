@@ -1,6 +1,10 @@
 # AnnualPDHours — Build Order and Acceptance Criteria
 
-## Current increment — 2026-11-10
+## Current increment — 2026-11-16
+
+Acceptance: weekly-hours entry in both calculators; annual totals fixed to 52 weeks; prorated vacation and holiday allowances below 40 hours/week; preserve actual used hours; remove calendar annual-hours explanation; exact requested admin note. Pure calculations and tests precede UI. Document normalized forecast timing and explicit full-time input units. Preserve saved plans, import/export and responsive/accessibility behavior. Validation passed: all 58 automated tests, lint, and npm run build. Production browser checks passed for 40/32/25 weekly hours, 52-week annual totals, vacation/holiday proration, used-hour preservation, submitted results, v4 backup/reload, v3 import/storage migration retaining the original key, mobile layouts at 768/375/320px and dark mode. Screenshots reviewed. No push/deployment authorized.
+
+## Previous increment — 2026-11-10
 
 Acceptance: add Simple Calculator for annual non-billable hours, rename the existing calculator Refined Calculator for PD after other responsibilities, use utilization/used/anticipated terminology, put holidays before vacation/sick leave, replace the unclear double-counting note, and use editable nine-day holiday / 52-hour admin assumptions. Preserve mid-year results, the 2026–2036 year control, 2027 default, Classic 8-Ball, accessibility, local auto-save and validated exports. Pure annual calculations, safe transfer and allowance accounting were implemented/tested before UI changes. Earlier two-tab and zero-admin defaults below are historical and superseded. Validation passed: lint, TypeScript/production build, and all 45 automated tests. Production-browser checks passed for annual and mid-year results, safe transfer preserving used hours and additional responsibilities, JSON export/import, localStorage reload, Classic default, and light/dark layouts at 768/375/320px. Screenshots were visually reviewed. No push or deployment was performed.
 

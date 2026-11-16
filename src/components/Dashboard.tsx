@@ -372,7 +372,7 @@ export default function Dashboard({
                 <tr>
                   <th scope="row">Vacation</th>
                   <td>{hours(plan.vacation.taken)}</td>
-                  <td>{hours(plan.vacation.future)}</td>
+                  <td>{hours(r.futureVacationHours)}</td>
                   <td>{hours(r.vacationHours)}</td>
                 </tr>
                 <tr>
@@ -470,7 +470,10 @@ export default function Dashboard({
           admin/other plans reduce future capacity; used entries are not
           deducted again. One equivalent workweek is{" "}
           {hours(r.standardWeeklyHours)} available scheduled hours. Undated
-          plans use aggregate estimates.
+          plans use aggregate estimates. The 52-week annual budget is
+          distributed across the selected year's forecast weekdays; elapsed and
+          remaining hours always add up to that annual budget. Vacation details
+          show actual prorated hours.
         </p>
       </section>
       <Notice>

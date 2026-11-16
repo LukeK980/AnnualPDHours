@@ -27,6 +27,8 @@ export interface SimpleInputs {
 export interface AnnualPlan {
   year: number;
   hoursPerDay: number;
+  /** Weekly/52-week convention. Absent only while reading historical plans. */
+  weeklyHours?: number;
   workingDays: number[];
   billabilityGoalPct: number;
   currentBillabilityPct: number;
@@ -58,6 +60,7 @@ export interface Allocation {
   color: string;
 }
 export interface CalculationResult {
+  futureVacationHours: number;
   scheduledHours: number;
   workingDays: number;
   holidayHours: number;
@@ -102,7 +105,7 @@ export interface CalculationResult {
   warnings: string[];
 }
 export interface SavedState {
-  version: 3;
+  version: 4;
   activeYear: number;
   theme: Theme;
   plans: Record<string, AnnualPlan>;

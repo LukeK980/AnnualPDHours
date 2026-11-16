@@ -21,9 +21,19 @@ const fixedIds = [
   "thanksgiving-friday",
   "christmas",
 ];
-export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
+export function validatePlan(
+  value: unknown,
+  version: 1 | 2 | 3 | 4 = 4,
+): string[] {
   if (!isObject(value)) return ["Plan must be an object."];
   const errors: string[] = [];
+  if (version === 4 && value.weeklyHours === undefined)
+    errors.push("Weekly hours are required in a version 4 plan.");
+  if (
+    value.weeklyHours !== undefined &&
+    (!finite(value.weeklyHours, 168) || value.weeklyHours === 0)
+  )
+    errors.push("Hours per week must be greater than 0 and at most 168.");
   if (
     value.holidayAllowanceDays !== undefined &&
     !finite(value.holidayAllowanceDays, 366)
@@ -46,8 +56,12 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
     (value.year as number) < 1900
   )
     errors.push("Year must be between 1900 and 2100.");
-  if (!finite(value.hoursPerDay, 24) || value.hoursPerDay === 0)
-    errors.push("Hours per workday must be greater than 0 and at most 24.");
+  // Weekly plans use this legacy field only as a forecast weight, not a workday entitlement.
+  if (
+    !finite(value.hoursPerDay, value.weeklyHours === undefined ? 24 : 168) ||
+    value.hoursPerDay === 0
+  )
+    errors.push("Invalid daily schedule reference.");
   if (
     !Array.isArray(value.workingDays) ||
     !value.workingDays.length ||
@@ -82,7 +96,7 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
     errors.push("Enter a valid calculation date.");
   if (
     !(
-      version === 3
+      version >= 3
         ? ["scheduled"]
         : ["available", "scheduled", "after_holidays"]
     ).includes(String(value.denominator))
@@ -127,7 +141,7 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
     );
   if (
     !Array.isArray(value.commitments) ||
-    value.commitments.length < (version === 3 ? 2 : 4) ||
+    value.commitments.length < (version >= 3 ? 2 : 4) ||
     value.commitments.length > 50 ||
     value.commitments.some(
       (c) =>
@@ -137,13 +151,13 @@ export function validatePlan(value: unknown, version: 1 | 2 | 3 = 3): string[] {
         typeof c.name !== "string" ||
         !c.name.trim() ||
         c.name.length > 80 ||
-        (version === 3
+        (version >= 3
           ? !finite(c.taken) || !finite(c.future)
           : !finite(c.hours)),
     ) ||
     new Set(value.commitments.map((c) => (isObject(c) ? c.id : undefined)))
       .size !== value.commitments.length ||
-    (version === 3
+    (version >= 3
       ? ["hs", "admin"]
       : ["hs", "admin", "meetings", "other"]
     ).some(

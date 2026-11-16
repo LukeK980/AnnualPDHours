@@ -13,6 +13,12 @@ import {
   TextField,
 } from "./Fields";
 import { hours } from "../lib/format";
+import {
+  weeklyHours,
+  proration,
+  holidayDayHours,
+  updateSchedule,
+} from "../lib/schedule";
 
 const standardIds = new Set(["hs", "admin"]);
 const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -85,21 +91,11 @@ export default function Planner({
             </h2>
             <div className="fields-grid">
               <NumberField
-                label="Hours per workday"
-                displayLabel="Hours you work per day"
-                value={plan.hoursPerDay}
+                label="Hours per week"
+                value={weeklyHours(plan)}
                 min={0.25}
-                max={24}
-                onChange={(hoursPerDay) =>
-                  patch({
-                    hoursPerDay,
-                    floatingHolidays: plan.floatingHolidays.map((h) =>
-                      h.hours === plan.hoursPerDay
-                        ? { ...h, hours: hoursPerDay }
-                        : h,
-                    ),
-                  })
-                }
+                max={168}
+                onChange={(value) => onChange(updateSchedule(plan, value))}
               />
               <NumberField
                 label="Utilization goal"
@@ -128,7 +124,7 @@ export default function Planner({
             </div>
             <details className="calculator-details">
               <summary>
-                Workdays:{" "}
+                Forecast weekdays:{" "}
                 {plan.workingDays.map((d) => weekdayNames[d]).join(", ")}{" "}
                 <span>Change</span>
               </summary>
@@ -149,9 +145,13 @@ export default function Planner({
                         }
                         onChange={(e) =>
                           patch({
-                            workingDays: e.target.checked
-                              ? [...plan.workingDays, i].sort()
-                              : plan.workingDays.filter((d) => d !== i),
+                            ...updateSchedule(
+                              plan,
+                              weeklyHours(plan),
+                              e.target.checked
+                                ? [...plan.workingDays, i].sort()
+                                : plan.workingDays.filter((d) => d !== i),
+                            ),
                           })
                         }
                       />
@@ -162,10 +162,12 @@ export default function Planner({
               </fieldset>
             </details>
             <p className="calculator-help">
-              Current utilization is your year-to-date percentage of all
-              scheduled hours. An 80% utilization goal leaves 20% for every
-              non-billable hour, including vacation, sick leave, holidays,
-              training, and admin/other.
+              {hours(weeklyHours(plan))} hours/week × 52 weeks ={" "}
+              {hours(r.scheduledHours)} annual hours. Weekdays only control
+              forecast timing. Current utilization is your year-to-date
+              percentage of all scheduled hours. An 80% utilization goal leaves
+              20% for every non-billable hour, including vacation, sick leave,
+              holidays, training, and admin/other.
             </p>
             {plan.migrationNotice && (
               <Notice>
@@ -194,14 +196,17 @@ export default function Planner({
             </div>
             <p className="calculator-help">
               The seven named holidays are calculated for {plan.year}. Set the
-              status of your two floating holidays below.
+              status of your two floating holidays below. Each holiday is{" "}
+              {hours(holidayDayHours(plan))} hours at your schedule (
+              {hours(proration(plan) * 100)}% of an 8-hour full-time holiday).
             </p>
             <details className="calculator-details">
               <summary>Annual paid holiday allowance</summary>
               <NumberField
                 label="Paid holiday allowance in Refined"
                 value={
-                  plan.holidayAllowanceDays ?? r.holidayHours / plan.hoursPerDay
+                  plan.holidayAllowanceDays ??
+                  r.holidayHours / holidayDayHours(plan)
                 }
                 unit="days / year"
                 max={366}
@@ -242,8 +247,8 @@ export default function Planner({
             ))}
             <p className="calculator-help">
               {observationLabels[plan.observation]} Undated floating holidays
-              reserve up to one workday each; Used holidays aren't deducted
-              again from future hours.
+              reserve the prorated holiday allowance each; Used holidays aren't
+              deducted again from future hours.
             </p>
             <details className="calculator-details">
               <summary>
@@ -309,7 +314,7 @@ export default function Planner({
                   <h3>Floating Holiday #{i + 1}</h3>
                   <div className="fields-grid">
                     <NumberField
-                      label={`Floating #${i + 1} hours`}
+                      label={`Floating #${i + 1} full-time hours`}
                       value={h.hours}
                       max={24}
                       onChange={(value) =>
@@ -358,12 +363,12 @@ export default function Planner({
                   <NumberField
                     label={
                       key === "vacation"
-                        ? "Planned vacation"
+                        ? "Planned vacation (full-time hours)"
                         : "Anticipated sick leave"
                     }
                     displayLabel={
                       key === "vacation"
-                        ? "Planned for the rest of the year"
+                        ? "Planned for the rest of the year (full-time hours)"
                         : "Anticipated for the rest of the year"
                     }
                     value={plan[key].future}
@@ -375,7 +380,11 @@ export default function Planner({
               </div>
             ))}
             <p className="calculator-help">
-              Only future leave reduces your remaining-year forecast.
+              Planned vacation is entered as full-time hours and prorated to{" "}
+              {hours(proration(plan) * 100)}%: {hours(r.futureVacationHours)}{" "}
+              actual future vacation hours. Used vacation and all sick leave are
+              actual hours and are never prorated again. Only future leave
+              reduces your remaining-year forecast.
             </p>
           </section>
           <section

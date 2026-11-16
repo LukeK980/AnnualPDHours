@@ -1,11 +1,13 @@
 import type { AnnualPlan, Denominator, SavedState } from "./types";
 import { dateString, isObject, validatePlan } from "./validation";
 import { calculate } from "./calculations";
+import { proration, updateSchedule } from "./schedule";
 export { dateString, validDate, validatePlan } from "./validation";
 export const DEFAULT_YEAR = 2027;
 export const MIN_SELECTABLE_YEAR = 2026;
 export const MAX_SELECTABLE_YEAR = 2036;
-export const STORAGE_KEY = "annual-pd-hours:v3";
+export const STORAGE_KEY = "annual-pd-hours:v4";
+export const CALENDAR_STORAGE_KEY = "annual-pd-hours:v3";
 export const PREVIOUS_STORAGE_KEY = "annual-pd-hours:v2";
 export const LEGACY_STORAGE_KEY = "annual-pd-hours:v1";
 export function defaultPlan(
@@ -22,6 +24,7 @@ export function defaultPlan(
   return {
     year,
     hoursPerDay: 8,
+    weeklyHours: 40,
     workingDays: [1, 2, 3, 4, 5],
     billabilityGoalPct: 80,
     currentBillabilityPct: 0,
@@ -47,7 +50,7 @@ export function defaultPlan(
 export function createState(today = new Date()): SavedState {
   const p = defaultPlan(DEFAULT_YEAR, today);
   return {
-    version: 3,
+    version: 4,
     activeYear: p.year,
     theme: "system",
     plans: { [p.year]: p },
@@ -64,16 +67,16 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
   }
   if (
     !isObject(value) ||
-    ![1, 2, 3].includes(Number(value.version)) ||
+    ![1, 2, 3, 4].includes(Number(value.version)) ||
     typeof value.version !== "number" ||
     !["light", "dark", "system"].includes(String(value.theme)) ||
     !Number.isInteger(value.activeYear) ||
     !isObject(value.plans)
   )
     throw new Error(
-      "Unsupported plan format. Import an AnnualPDHours version 1, 2 or 3 backup.",
+      "Unsupported plan format. Import an AnnualPDHours version 1, 2, 3 or 4 backup.",
     );
-  const version = value.version as 1 | 2 | 3,
+  const version = value.version as 1 | 2 | 3 | 4,
     entries = Object.entries(value.plans);
   if (
     !entries.length ||
@@ -103,6 +106,9 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
       const plan: AnnualPlan = {
         year: p.year,
         hoursPerDay: p.hoursPerDay,
+        ...(version >= 3 && p.weeklyHours !== undefined
+          ? { weeklyHours: p.weeklyHours }
+          : {}),
         workingDays: [...p.workingDays],
         billabilityGoalPct: p.billabilityGoalPct,
         currentBillabilityPct: version === 1 ? 0 : p.currentBillabilityPct,
@@ -121,7 +127,7 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
         vacation: { taken: p.vacation.taken, future: p.vacation.future },
         sick: { taken: p.sick.taken, future: p.sick.future },
         commitments:
-          version === 3
+          version >= 3
             ? p.commitments.map((c) => ({
                 id: c.id,
                 name: c.name.trim(),
@@ -198,6 +204,37 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
           plan.legacyCompletedBillableHours = p.legacyCompletedBillableHours;
         if (p.migrationNotice) plan.migrationNotice = p.migrationNotice;
       }
+      if (plan.weeklyHours === undefined) {
+        const previous = calculate(plan);
+        const next = updateSchedule(
+          plan,
+          plan.hoursPerDay * plan.workingDays.length,
+        );
+        const factor = proration(next);
+        // Keep entered actual vacation hours intact when adopting full-time input units.
+        next.vacation = {
+          taken: plan.vacation.taken,
+          future: plan.vacation.future / factor,
+        };
+        if (plan.simpleInputs)
+          next.simpleInputs = {
+            ...plan.simpleInputs,
+            vacationHours: plan.simpleInputs.vacationHours / factor,
+          };
+        const elapsed = calculate(next).elapsedScheduledHours;
+        next.currentBillabilityPct =
+          elapsed > 0
+            ? Math.min(
+                100,
+                (previous.estimatedCompletedBillableHours / elapsed) * 100,
+              )
+            : 0;
+        next.migrationNotice =
+          "Updated to weekly hours × 52. Holidays are prorated below 40 hours/week. Existing vacation amounts were retained and converted to full-time input units; used hours are unchanged. Current utilization was converted to preserve estimated completed hours where possible. Review the new annual target and allowances. " +
+          (plan.migrationNotice ?? "");
+        next.migrationNotice = next.migrationNotice.slice(0, 1000);
+        return [key, next];
+      }
       return [key, plan];
     }),
   );
@@ -212,7 +249,7 @@ export function parseState(json: string, openDefaultYear = false): SavedState {
       : DEFAULT_YEAR;
   if (!plans[activeYear]) plans[activeYear] = defaultPlan(activeYear);
   return {
-    version: 3,
+    version: 4,
     activeYear,
     theme: value.theme as SavedState["theme"],
     plans,

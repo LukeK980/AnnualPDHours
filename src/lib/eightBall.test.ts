@@ -7,7 +7,7 @@ describe("Smart 8-Ball uses remaining non-billable availability", () => {
     const p = defaultPlan();
     p.vacation.future = 200;
     const r = calculate(p);
-    expect(r.availableNonBillableHours).toBeCloseTo(93.6);
+    expect(r.availableNonBillableHours).toBeCloseTo(92);
     expect(smartAnswer("Can I attend a 24-hour conference?", r)).toContain(
       "fits your remaining non-billable budget",
     );

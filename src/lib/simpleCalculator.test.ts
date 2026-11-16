@@ -14,9 +14,9 @@ describe("Simple annual utilization calculator", () => {
       r = calculateSimple(p);
     expect(s.holidayDays).toBe(9);
     expect(s.adminHours).toBe(52);
-    expect(r.scheduledHours).toBe(2088);
+    expect(r.scheduledHours).toBe(2080);
     expect(r.holidayHours).toBe(72);
-    expect(r.availableHours).toBeCloseTo(293.6);
+    expect(r.availableHours).toBeCloseTo(292);
   });
   it("subtracts vacation, anticipated sick, H&S and admin once from the annual non-billable allowance", () => {
     const p = defaultPlan();
@@ -27,7 +27,7 @@ describe("Simple annual utilization calculator", () => {
       hsHours: 8,
       adminHours: 52,
     };
-    expect(calculateSimple(p).availableHours).toBeCloseTo(141.6);
+    expect(calculateSimple(p).availableHours).toBeCloseTo(140);
   });
   it("is independent of current utilization and date for an annual budget", () => {
     const p = defaultPlan();
@@ -36,15 +36,15 @@ describe("Simple annual utilization calculator", () => {
     p.calculationDate = "2027-10-14";
     expect(calculateSimple(p)).toEqual(before);
   });
-  it("handles changed daily hours, 0/100% goals and deficits", () => {
+  it("handles changed weekly hours, 0/100% goals and deficits", () => {
     const p = defaultPlan();
-    p.hoursPerDay = 4;
+    p.weeklyHours = 20;
     expect(calculateSimple(p).holidayHours).toBe(36);
     p.billabilityGoalPct = 100;
     expect(calculateSimple(p).availableHours).toBe(0);
     expect(calculateSimple(p).deficitHours).toBe(88);
     p.billabilityGoalPct = 0;
-    expect(calculateSimple(p).availableHours).toBe(956);
+    expect(calculateSimple(p).availableHours).toBe(952);
   });
   it("carries annual assumptions while retaining used hours and additional responsibilities", () => {
     const p = defaultPlan();

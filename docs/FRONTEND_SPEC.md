@@ -4,6 +4,12 @@
 
 Three primary entries: **Simple Calculator**, **Refined Calculator**, and **PD Magic 8-Ball**. Simple opens first with a live annual result. Refined submits to a PD/mid-year results dashboard, with **Edit my hours** returning to its saved inputs. Settings is a modal. New plans default to 2027; the header year control offers 2026–2036 inclusive and restores year-specific plans. Store only local data, with validated JSON import/export and confirmed reset. Show save/storage errors clearly.
 
+## Weekly schedule and input units — 2026-11-16
+
+Both calculators ask **Hours per week**, default 40. Annual budget is weekly hours × 52, never calendar weekdays × daily hours. Remove the 261-day/2,088-hour explanation. Optional forecast weekdays do not alter weekly hours or annual allowances. Show the prorated holiday hours and vacation result clearly. Simple annual vacation and Refined future vacation are full-time hours; used vacation and all sick/training/admin inputs are actual hours. Never prorate used entries again. Legacy plans show a conversion review notice.
+
+Simple admin note: “The default admin time is set to one hour per week, or 52 hours per year; these are for calculation purposes only, not confirmed company requirements. Please adjust as appropriate.”
+
 ## Simple Calculator
 
 Show annual schedule/ utilization goal, paid holiday allowance (default nine days), annual vacation, anticipated annual sick leave, required H&S and assumed admin (default 52 hours/year). Show live annual non-billable availability with a transparent breakdown. All annual totals include used time. Clearly mark defaults as editable assumptions. An explicit carry action opens Refined with those annual totals, preserving used amounts and extra responsibilities; show errors if the transfer would erase used hours or conflict with configured holiday hours.
@@ -12,7 +18,7 @@ Show annual schedule/ utilization goal, paid holiday allowance (default nine day
 
 Use a compact, labelled form with four groups:
 
-1. Work schedule: hours/day, **Utilization goal (%)**, **Current utilization (%)**, calculation date. Weekdays are expandable. Explain that current and target percentages use all scheduled hours, including leave and holidays.
+1. Work schedule: hours/week, **Utilization goal (%)**, **Current utilization (%)**, calculation date. Weekdays are expandable. Explain that current and target percentages use all scheduled hours, including leave and holidays.
 2. Paid holidays: annual allowance and calendar timing; floating status and optional dates visible, with editable floating hours and observed dates in an expandable section. State observation assumptions visibly.
 3. Vacation and sick leave: **Already used**, planned vacation, and **Anticipated for the rest of the year** for sick leave, in hours, with annual totals.
 4. **H&S training & Administration**: used/planned splits. H&S starts at zero; new administration assumptions start at 52 annual hours. Permit extra responsibilities, editing and deletion.

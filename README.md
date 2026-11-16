@@ -2,6 +2,10 @@
 
 A free, open-source, browser-only calculator for annual utilization and available non-billable hours, including professional development. No backend, accounts, analytics, API keys or paid services.
 
+## Weekly hours and part-time schedules
+
+Both calculators use weekly hours × 52: 40 hours/week = 2,080 hours/year, 32 = 1,664, and 25 = 1,300. Holiday and vacation allowances scale below 40 hours/week; an eight-hour holiday becomes five hours at 25/week. Enter vacation allowances as full-time hours; used vacation stays actual hours. Prorated amounts are shown explicitly. Sick leave, training and admin use actual entered hours. Optional weekdays control only midyear timing, using a normalized share of the annual budget. Old saved plans migrate to v4 with a review notice, retaining their original browser storage keys.
+
 ## How it works
 
 Start with **Simple Calculator** to see annual non-billable availability. It subtracts an editable nine paid-holiday days, annual vacation, anticipated sick leave, H&S training and 52 admin hours/year from your utilization-based allowance. Select **Use these inputs in Refined** to carry those totals into **Refined Calculator**, which adds used/current utilization and other responsibilities to estimate available PD. Select **Calculate my results** there to see the dashboard. **Edit my hours** returns to your inputs. The third navigation entry is **PD Magic 8-Ball**, with fun Classic answers and deterministic Smart answers based on your remaining availability.
@@ -29,7 +33,7 @@ Results show annual totals, the allowance remaining before plans, availability a
 
 ### Assumptions
 
-These are requested application planning rules, **not confirmed Terraphase policy**. Annual/current utilization use all scheduled hours, including paid leave. Calendar weekdays determine scheduled hours rather than assuming 2,080 every year. The calculation date belongs to remaining time. Undated leave/commitments use aggregate estimates, so enter leave excluding holidays.
+These are requested application planning rules, **not confirmed Terraphase policy**. Annual/current utilization use all scheduled hours, including paid leave. Weekly hours × 52 determine annual scheduled hours; calendar weekdays distribute forecast timing only. The calculation date belongs to remaining time. Undated leave/commitments use aggregate estimates, so enter leave excluding holidays.
 
 Seven fixed holidays plus two floating holidays are recognized. Nine nominal eight-hour days equal 72 hours only if all count under your schedule and observation choices. Default observation uses actual dates; nearest weekday, next Monday and individual dates are configurable. Dated overlaps count once, up to daily hours. Floating dates are optional; undated Not Taken/Planned holidays reserve future time, while Taken holidays do not reduce future capacity again.
 
@@ -58,9 +62,9 @@ React, TypeScript, Vite, Tailwind CSS, Recharts, date-fns, Lucide React and Moti
 
 ## Saving and backups
 
-Inputs auto-save in this browser under `annual-pd-hours:v3`; plans are separate by year. Settings provides JSON export/import, light/dark/system themes, and a confirmed active-year reset. Export contains all years; imports validate the entire backup before replacing anything. Clearing browser data removes plans, so keep a JSON backup.
+Inputs auto-save in this browser under `annual-pd-hours:v4`; plans are separate by year. Settings provides JSON export/import, light/dark/system themes, and a confirmed active-year reset. Export contains all years; imports validate the entire backup before replacing anything. Clearing browser data removes plans, so keep a JSON backup.
 
-V1/v2 backups and older local storage migrate to v3. Previous net-working percentages convert to all-scheduled-hours percentages, preserving estimated completed hours where possible. Old annual-only H&S/admin/custom totals become planned hours with a review notice; adjust their used/planned split. Prior Admin/Other/Meetings are combined. Original old keys remain intact, and impossible old completed-hour values are preserved for reference with warnings. Existing years remain accessible; browser migration initially opens 2027, while explicit imports respect the backup's active year.
+V1/v2/v3 backups and older local storage migrate to v4. Previous percentage bases convert to the 52-week schedule, preserving estimated completed hours where possible. Old annual-only H&S/admin/custom totals become planned hours with a review notice; adjust their used/planned split. Prior Admin/Other/Meetings are combined. Original old keys remain intact, and impossible old completed-hour values are preserved for reference with warnings. Existing years remain accessible; v1/v2 browser migration initially opens 2027, while explicit imports respect the backup's active year. Vacation inputs convert to full-time units while retaining actual previously entered hours; holiday allowances adopt part-time proration. Review the visible conversion notice.
 
 No personal data is transmitted by the calculator. Static files come from the host; source links open only when clicked.
 
@@ -78,4 +82,4 @@ Read `AGENTS.md` and `docs/` before changing behavior. Preserve the calculator/r
 
 MIT. See [LICENSE](LICENSE).
 
-Simple inputs and optional annual holiday allowances are included in validated v3 backups. Existing plans are preserved. Explicit transfer retains used values and custom responsibilities, and refuses annual totals below already-used amounts. New Refined defaults reserve nine paid-holiday days and 52 admin hours; calendar observation remains configurable, with only the unassigned allowance reserved as undated future time. These defaults are planning assumptions supplied in the design feedback, not confirmed company policies.
+Simple inputs and optional annual holiday allowances are included in validated v4 backups. Existing plans are preserved. Explicit transfer retains used values and custom responsibilities, and refuses annual totals below already-used amounts. New Refined defaults reserve nine paid-holiday days and 52 admin hours; calendar observation remains configurable, with only the unassigned allowance reserved as undated future time. These defaults are planning assumptions supplied in the design feedback, not confirmed company policies.

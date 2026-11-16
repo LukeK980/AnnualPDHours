@@ -7,6 +7,7 @@ import {
   startOfYear,
 } from "date-fns";
 import { dateString, validatePlan } from "./validation";
+import { holidayDayHours, proration, weeklyHours } from "./schedule";
 import type {
   AnnualPlan,
   CalculationResult,
@@ -90,10 +91,14 @@ export function scheduledWorkdays(plan: AnnualPlan) {
   }).filter((d) => plan.workingDays.includes(getDay(d)));
 }
 export function calculate(plan: AnnualPlan): CalculationResult {
-  const errors = validatePlan(plan);
+  const errors = validatePlan(plan, plan.weeklyHours === undefined ? 3 : 4);
   if (errors.length) throw new Error(errors.join(" "));
   const workdays = scheduledWorkdays(plan);
-  const scheduledHours = workdays.length * plan.hoursPerDay;
+  const scheduledHours =
+    plan.weeklyHours === undefined
+      ? workdays.length * plan.hoursPerDay
+      : weeklyHours(plan) * 52;
+  const holidayUnit = holidayDayHours(plan);
   const remainingWorkdays = workdays.filter(
     (d) => dateString(d) >= plan.calculationDate,
   ).length;
@@ -110,7 +115,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
       return 0;
     }
     const prior = booked.get(date) ?? 0;
-    const counted = Math.min(hours, Math.max(0, plan.hoursPerDay - prior));
+    const counted = Math.min(hours, Math.max(0, holidayUnit - prior));
     if (counted < hours)
       warnings.push(
         `${name}: overlapping holiday hours or hours above the daily schedule were not counted twice on ${date}.`,
@@ -122,7 +127,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     const date =
       plan.holidayOverrides[h.id] ??
       dateString(observedDate(h.date, plan.observation));
-    const hours = book(date, plan.hoursPerDay, h.name);
+    const hours = book(date, holidayUnit, h.name);
     return {
       id: h.id,
       name: h.name,
@@ -133,10 +138,9 @@ export function calculate(plan: AnnualPlan): CalculationResult {
   });
   for (const [index, h] of plan.floatingHolidays.entries()) {
     const name = `Floating Holiday #${index + 1}`;
-    const hours = h.date
-      ? book(h.date, h.hours, name)
-      : Math.min(h.hours, plan.hoursPerDay);
-    if (!h.date && h.hours > plan.hoursPerDay)
+    const entitlement = Math.min(h.hours * proration(plan), holidayUnit);
+    const hours = h.date ? book(h.date, entitlement, name) : entitlement;
+    if (!h.date && h.hours * proration(plan) > holidayUnit)
       warnings.push(`${name}: reserved hours were capped at one workday.`);
     const futureHours =
       h.status === "taken" || plan.calculationDate > `${plan.year}-12-31`
@@ -163,7 +167,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
   }
   const calendarHolidayHours = holidays.reduce((sum, h) => sum + h.hours, 0);
   if (plan.holidayAllowanceDays !== undefined) {
-    const allowanceHours = plan.holidayAllowanceDays * plan.hoursPerDay;
+    const allowanceHours = plan.holidayAllowanceDays * holidayUnit;
     const unassignedHours = Math.max(0, allowanceHours - calendarHolidayHours);
     if (unassignedHours > 0)
       holidays.push({
@@ -185,7 +189,8 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     (sum, h) => sum + h.futureHours,
     0,
   );
-  const vacationHours = plan.vacation.taken + plan.vacation.future;
+  const futureVacationHours = plan.vacation.future * proration(plan);
+  const vacationHours = plan.vacation.taken + futureVacationHours;
   const sickHours = plan.sick.taken + plan.sick.future;
   const takenHolidayHours = holidays.reduce(
     (sum, h) =>
@@ -216,7 +221,8 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     plan.billabilityGoalPct,
     requiredOtherNonBillable,
   );
-  const remainingScheduledHours = remainingWorkdays * plan.hoursPerDay;
+  const remainingScheduledHours =
+    (scheduledHours * remainingWorkdays) / workdays.length;
   const elapsedScheduledHours = scheduledHours - remainingScheduledHours;
   const elapsedHolidayHours = takenHolidayHours;
   const elapsedDenominatorHours = elapsedScheduledHours;
@@ -244,7 +250,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
   );
   const plannedNonBillableHours =
     futureHolidayHours +
-    plan.vacation.future +
+    futureVacationHours +
     plan.sick.future +
     futureCommitmentHours;
   const billableHoursRemaining = Math.max(
@@ -267,7 +273,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     0,
     remainingScheduledHours - plannedNonBillableHours,
   );
-  const standardWeeklyHours = plan.workingDays.length * plan.hoursPerDay;
+  const standardWeeklyHours = weeklyHours(plan);
   const remainingEffectiveWeeks = remainingAvailableHours / standardWeeklyHours;
   const requiredWeeklyBillable =
     remainingEffectiveWeeks > 0
@@ -369,6 +375,7 @@ export function calculate(plan: AnnualPlan): CalculationResult {
     ...annual,
     scheduledHours,
     workingDays: workdays.length,
+    futureVacationHours,
     holidayHours,
     futureHolidayHours,
     takenHolidayHours,

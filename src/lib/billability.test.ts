@@ -44,7 +44,9 @@ describe("default year and whole-year current billability", () => {
     const before = calculate(p);
     p.vacation.taken = 64;
     p.sick.taken = 24;
-    expect(calculate(p).estimatedCompletedBillableHours).toBe(1224);
+    expect(calculate(p).estimatedCompletedBillableHours).toBeCloseTo(
+      ((2080 * 204) / 261) * 0.75,
+    );
     expect(calculate(p).estimatedCompletedBillableHours).toBe(
       before.estimatedCompletedBillableHours,
     );
@@ -61,7 +63,7 @@ describe("backward-compatible v3 migration", () => {
     p.sick = { taken: 24, future: 8 };
     const m = parseState(JSON.stringify(s)),
       r = calculate(m.plans[2026]);
-    expect(m.version).toBe(3);
+    expect(m.version).toBe(4);
     expect(r.estimatedCompletedBillableHours).toBeCloseTo(
       (1632 - 24 - 64 - 24) * 0.8,
     );

@@ -2,7 +2,21 @@
 
 These are the owner's requested planning rules, not confirmed Terraphase policy. Observed holiday dates remain configurable. The 2026-11-06 full-schedule convention supersedes the earlier leave-excluding denominator.
 
-## Simple and Refined calculators — 2026-11-10
+## Weekly hours and part-time allowances — 2026-11-16
+
+The owner's latest rule supersedes calendar-workday annual totals: annual scheduled hours = weekly hours × 52. A 40-hour week is 2,080 hours in every year; 32 is 1,664 and 25 is 1,300. The calendar still supplies configurable holiday dates and forecast timing, not extra annual hours.
+
+Both calculators use a weekly-hours input. Optional weekdays only distribute the midyear forecast: remaining scheduled hours = annual scheduled hours × remaining selected weekdays / all selected weekdays in the year. Elapsed is the complement. This normalized planning estimate handles leap years and partial weeks and includes the calculation day in remaining time. A week equivalent uses the entered weekly hours.
+
+Part-time fraction = min(1, weekly hours / 40). Each full-time holiday is 8 hours × that fraction, independent of how the weekly hours are spread across weekdays. Nine holidays are 72/57.6/45 hours for 40/32/25-hour weeks. Floating-hour inputs are full-time equivalents, scaled once and capped at the prorated eight-hour allowance. Observation/overlap rules and the single undated allowance top-up remain; no observation policy is newly asserted.
+
+Vacation inputs have explicit units: Simple annual vacation and Refined planned future vacation are **full-time-equivalent hours**. They are multiplied by the part-time fraction once. Refined **used vacation is actual hours**, never rescaled; annual actual vacation = used + prorated future. Simple-to-Refined transfer preserves used actual hours and divides only the remaining actual allowance by the fraction to populate the future input. It refuses an annual allowance below used actual hours. Sick leave, H&S, admin and custom responsibilities remain actual entered hours; no additional proration policy is inferred. Admin defaults to 52 actual hours and remains editable.
+
+V4 backups and the annual-pd-hours:v4 storage key identify the new weekly-hours and vacation input units; versions 1–3 remain importable, and old browser keys are retained. Weekly hours are validated. Old plans without it are upgraded from hours/day × weekday count, with a visible review notice. Existing actual vacation totals are retained by converting inputs to full-time equivalents; used entries are unchanged. Current utilization is adjusted to retain the prior estimated completed hours where representable. The new annual target and prorated holiday policy still apply and are explicitly announced. New-format plans round trip without conversion. Historical calendar calculation remains internal only for migration/reference tests, not a user option.
+
+Full-time Simple example: 2,080 × 20% = 416 allowance − 72 holidays − 52 admin = 292 available. Vacation 120, sick 24 and H&S 8 leave 140. At 25 hours/week, vacation allowance 120 becomes 75 and nine holidays become 45; with admin 52 and no other inputs, 88 hours remain.
+
+## Historical Simple and Refined convention — 2026-11-10 (superseded)
 
 User-facing terminology is **utilization goal**, **current utilization**, **used**, and **anticipated sick leave**. Legacy TypeScript/JSON field names remain compatible with older backups.
 
@@ -20,7 +34,7 @@ Optional `simpleInputs` and `holidayAllowanceDays` are validated/sanitized and i
 
 ## Annual goal: all non-billable time counts
 
-- `scheduledHours`: calendar workdays × configured hours/day. Never assume every year has 2,080 hours.
+- `scheduledHours`: weekly hours × 52 (2,080 at 40 hours/week). Calendar totals below are historical, superseded by the 2026-11-16 rule.
 - `billableTargetHours = scheduledHours × billabilityGoalPct / 100`.
 - `annualNonBillableBudget = scheduledHours - billableTargetHours`.
 - Vacation, sick leave, paid holidays (including floating holidays), H&S training, admin/other, custom categories and PD all consume this same non-billable allowance. None reduces the billability denominator.
@@ -73,7 +87,7 @@ The pie represents the whole scheduled year. Billable target is therefore exactl
 
 Show annual leave/category totals, percentage-implied unitemized used time without counting already-reserved holiday amounts twice, and available non-billable time. Round only for display. Preserve precise values for subsequent calculations. Never label a plan “on track” merely because it has a certain goal-completion percentage.
 
-## Midyear regression fixture
+## Historical calendar-only midyear fixture (migration reference)
 
 2026 Mon–Fri, 8 h/day; calculation date October 14; actual holiday dates; current billability 85%, annual goal 80%. Vacation taken 64/planned 56; sick taken 24/planned 8; H&S taken 24/planned 8; admin taken 80/planned 16; both floating holidays undated Not Taken.
 

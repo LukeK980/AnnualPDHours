@@ -8,6 +8,7 @@ import {
 } from "../lib/simpleCalculator";
 import { NumberField, Notice } from "./Fields";
 import { hours } from "../lib/format";
+import { weeklyHours, proration, updateSchedule } from "../lib/schedule";
 
 export default function SimpleCalculator({
   plan,
@@ -64,19 +65,11 @@ export default function SimpleCalculator({
             </h2>
             <div className="fields-grid">
               <NumberField
-                label="Hours per workday"
-                value={plan.hoursPerDay}
+                label="Hours per week"
+                value={weeklyHours(plan)}
                 min={0.25}
-                max={24}
-                onChange={(value) =>
-                  onChange({
-                    ...plan,
-                    hoursPerDay: value,
-                    floatingHolidays: plan.floatingHolidays.map((h) =>
-                      h.hours === plan.hoursPerDay ? { ...h, hours: value } : h,
-                    ),
-                  })
-                }
+                max={168}
+                onChange={(value) => onChange(updateSchedule(plan, value))}
               />
               <NumberField
                 label="Utilization goal"
@@ -89,12 +82,12 @@ export default function SimpleCalculator({
               />
             </div>
             <p className="calculator-help">
-              {r.workdays} scheduled workdays × {hours(plan.hoursPerDay)} hours
-              = {hours(r.scheduledHours)} hours in {plan.year}. Your utilization
-              goal applies to all scheduled hours.
+              {hours(weeklyHours(plan))} hours/week × 52 weeks ={" "}
+              {hours(r.scheduledHours)} annual hours. Holiday and vacation
+              allowances use {hours(proration(plan) * 100)}% of full-time hours.
             </p>
             <details className="calculator-details">
-              <summary>Change workdays</summary>
+              <summary>Forecast weekdays (optional)</summary>
               <fieldset className="weekday-field">
                 <legend>Which days do you normally work?</legend>
                 <div className="weekdays">
@@ -115,10 +108,13 @@ export default function SimpleCalculator({
                           }
                           onChange={(e) =>
                             onChange({
-                              ...plan,
-                              workingDays: e.target.checked
-                                ? [...plan.workingDays, i].sort()
-                                : plan.workingDays.filter((day) => day !== i),
+                              ...updateSchedule(
+                                plan,
+                                weeklyHours(plan),
+                                e.target.checked
+                                  ? [...plan.workingDays, i].sort()
+                                  : plan.workingDays.filter((day) => day !== i),
+                              ),
                             })
                           }
                         />
@@ -150,9 +146,10 @@ export default function SimpleCalculator({
               </div>
             </div>
             <p className="calculator-help">
-              Starts at nine paid days, including two floating holidays. This is
-              an editable annual allowance; no weekend-observation policy is
-              assumed. Refined Calculator lets you enter holiday dates.
+              Starts at nine paid days, including two floating holidays,
+              prorated below 40 hours/week. This is an editable annual
+              allowance; no weekend-observation policy is assumed. Refined
+              Calculator lets you enter holiday dates.
             </p>
           </section>
           <section className="card form-section">
@@ -164,7 +161,7 @@ export default function SimpleCalculator({
             </p>
             <div className="fields-grid">
               <NumberField
-                label="Annual vacation"
+                label="Annual vacation (full-time hours)"
                 value={inputs.vacationHours}
                 onChange={(vacationHours) => update({ vacationHours })}
               />
@@ -175,6 +172,11 @@ export default function SimpleCalculator({
               />
             </div>
           </section>
+          <p className="calculator-help">
+            Prorated annual vacation: {hours(r.vacationHours)} hours. Enter the
+            allowance for a 40-hour week; it is adjusted once for your weekly
+            schedule. Sick leave, training and admin are actual hours.
+          </p>
           <section className="card form-section">
             <h2>
               <span className="step-dot">4</span> Required training &
@@ -193,9 +195,9 @@ export default function SimpleCalculator({
               />
             </div>
             <p className="calculator-help">
-              Administration starts at 52 hours/year for timesheets and expense
-              reports. Edit this assumption as needed. These are planning
-              inputs, not confirmed company requirements.
+              The default admin time is set to one hour per week, or 52 hours
+              per year; these are for calculation purposes only, not confirmed
+              company requirements. Please adjust as appropriate.
             </p>
           </section>
         </div>
@@ -221,7 +223,7 @@ export default function SimpleCalculator({
               ["Required utilized hours", hours(r.utilizedHours)],
               ["Non-billable allowance", hours(r.nonBillableAllowance)],
               ["Paid holidays", `−${hours(r.holidayHours)}`],
-              ["Vacation", `−${hours(inputs.vacationHours)}`],
+              ["Vacation (prorated)", `−${hours(r.vacationHours)}`],
               ["Anticipated sick leave", `−${hours(inputs.sickHours)}`],
               ["H&S training", `−${hours(inputs.hsHours)}`],
               ["Administration", `−${hours(inputs.adminHours)}`],

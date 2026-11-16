@@ -76,9 +76,9 @@ describe("calendar and holidays", () => {
   it("handles leap years and custom workweeks", () => {
     const p = defaultPlan(2024);
     p.workingDays = [0, 1, 2, 3, 4, 5, 6];
-    expect(calculate(p).scheduledHours).toBe(366 * 8);
+    expect(calculate(p).scheduledHours).toBe(2080);
     p.year = 2025;
-    expect(calculate(p).scheduledHours).toBe(365 * 8);
+    expect(calculate(p).scheduledHours).toBe(2080);
     p.workingDays = [1, 2, 3, 4, 5];
     expect(calculate(p).workingDays).toBe(261);
   });
@@ -125,18 +125,20 @@ describe("midyear remaining budget", () => {
   }
   it("reconciles percentage-implied usage with itemized taken hours without double counting", () => {
     const r = calculate(midyear());
-    expect(r.elapsedScheduledHours).toBe(1632);
-    expect(r.estimatedCompletedBillableHours).toBeCloseTo(1387.2);
-    expect(r.estimatedUsedNonBillableHours).toBeCloseTo(244.8);
+    expect(r.elapsedScheduledHours).toBeCloseTo((2080 * 204) / 261);
+    expect(r.estimatedCompletedBillableHours).toBeCloseTo(1381.88505747);
+    expect(r.estimatedUsedNonBillableHours).toBeCloseTo(243.86206897);
     expect(r.knownTakenNonBillableHours).toBe(216);
-    expect(r.usedNonBillableHours).toBeCloseTo(244.8);
-    expect(r.unitemizedTakenNonBillableHours).toBeCloseTo(28.8);
+    expect(r.usedNonBillableHours).toBeCloseTo(243.86206897);
+    expect(r.unitemizedTakenNonBillableHours).toBeCloseTo(27.86206897);
     expect(r.plannedNonBillableHours).toBe(128);
-    expect(r.remainingNonBillableAllowance).toBeCloseTo(172.8);
-    expect(r.availableNonBillableHours).toBeCloseTo(44.8);
-    expect(r.remainingAvailableHours).toBe(328);
-    expect(r.billableHoursRemaining).toBeCloseTo(283.2);
-    expect(r.requiredWeeklyBillable).toBeCloseTo(283.2 / (328 / 40));
+    expect(r.remainingNonBillableAllowance).toBeCloseTo(172.13793103);
+    expect(r.availableNonBillableHours).toBeCloseTo(44.13793103);
+    expect(r.remainingAvailableHours).toBeCloseTo(326.25287356);
+    expect(r.billableHoursRemaining).toBeCloseTo(282.11494253);
+    expect(r.requiredWeeklyBillable).toBeCloseTo(
+      282.11494253 / (326.25287356 / 40),
+    );
     expect(r.allocations.reduce((s, a) => s + a.hours, 0)).toBeCloseTo(
       r.scheduledHours,
     );
@@ -185,14 +187,16 @@ describe("midyear remaining budget", () => {
     const p = defaultPlan(2026);
     p.calculationDate = "2026-01-02";
     p.currentBillabilityPct = 50;
-    expect(calculate(p).estimatedCompletedBillableHours).toBe(4);
+    expect(calculate(p).estimatedCompletedBillableHours).toBeCloseTo(
+      (2080 / 261) * 0.5,
+    );
   });
   it("handles partial weeks, no remaining time and exceeded goals without creating extra hours", () => {
     const p = defaultPlan(2026);
     p.calculationDate = "2026-12-31";
     p.currentBillabilityPct = 80;
     p.floatingHolidays.forEach((h) => (h.status = "taken"));
-    expect(calculate(p).remainingEffectiveWeeks).toBe(0.2);
+    expect(calculate(p).remainingEffectiveWeeks).toBeCloseTo(52 / 261);
     p.calculationDate = "2027-01-01";
     p.currentBillabilityPct = 0;
     expect(calculate(p).requiredWeeklyBillable).toBeNull();

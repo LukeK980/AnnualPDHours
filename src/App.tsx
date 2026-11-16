@@ -17,6 +17,7 @@ import {
   defaultPlan,
   parseState,
   STORAGE_KEY,
+  CALENDAR_STORAGE_KEY,
   LEGACY_STORAGE_KEY,
   PREVIOUS_STORAGE_KEY,
   MIN_SELECTABLE_YEAR,
@@ -45,6 +46,7 @@ function loadState(): {
   try {
     raw =
       localStorage.getItem(STORAGE_KEY) ??
+      localStorage.getItem(CALENDAR_STORAGE_KEY) ??
       localStorage.getItem(PREVIOUS_STORAGE_KEY) ??
       localStorage.getItem(LEGACY_STORAGE_KEY);
   } catch {

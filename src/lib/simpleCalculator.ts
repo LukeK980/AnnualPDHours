@@ -1,6 +1,7 @@
 import type { AnnualPlan, SimpleInputs } from "./types";
 import { calculate, scheduledWorkdays } from "./calculations";
 import { validatePlan } from "./validation";
+import { holidayDayHours, proration, weeklyHours } from "./schedule";
 
 export function simpleInputs(plan: AnnualPlan): SimpleInputs {
   if (plan.simpleInputs) return plan.simpleInputs;
@@ -10,7 +11,7 @@ export function simpleInputs(plan: AnnualPlan): SimpleInputs {
   };
   return {
     holidayDays: plan.holidayAllowanceDays ?? 9,
-    vacationHours: plan.vacation.taken + plan.vacation.future,
+    vacationHours: plan.vacation.taken / proration(plan) + plan.vacation.future,
     sickHours: plan.sick.taken + plan.sick.future,
     hsHours: annual("hs"),
     adminHours: annual("admin") || 52,
@@ -18,17 +19,21 @@ export function simpleInputs(plan: AnnualPlan): SimpleInputs {
 }
 
 export function calculateSimple(plan: AnnualPlan) {
-  const errors = validatePlan(plan);
+  const errors = validatePlan(plan, plan.weeklyHours === undefined ? 3 : 4);
   if (errors.length) throw new Error(errors.join(" "));
   const inputs = simpleInputs(plan);
   const workdays = scheduledWorkdays(plan).length,
-    scheduledHours = workdays * plan.hoursPerDay;
+    scheduledHours =
+      plan.weeklyHours === undefined
+        ? workdays * plan.hoursPerDay
+        : weeklyHours(plan) * 52;
   const utilizedHours = (scheduledHours * plan.billabilityGoalPct) / 100;
   const nonBillableAllowance = scheduledHours - utilizedHours;
-  const holidayHours = inputs.holidayDays * plan.hoursPerDay;
+  const holidayHours = inputs.holidayDays * holidayDayHours(plan);
+  const vacationHours = inputs.vacationHours * proration(plan);
   const reservedHours =
     holidayHours +
-    inputs.vacationHours +
+    vacationHours +
     inputs.sickHours +
     inputs.hsHours +
     inputs.adminHours;
@@ -39,6 +44,7 @@ export function calculateSimple(plan: AnnualPlan) {
     utilizedHours,
     nonBillableAllowance,
     holidayHours,
+    vacationHours,
     reservedHours,
     availableRaw,
     availableHours: Math.max(0, availableRaw),
@@ -53,7 +59,7 @@ export function applySimpleInputs(plan: AnnualPlan): AnnualPlan {
   const hs = plan.commitments.find((c) => c.id === "hs")!,
     admin = plan.commitments.find((c) => c.id === "admin")!;
   for (const [name, total, used] of [
-    ["Vacation", inputs.vacationHours, plan.vacation.taken],
+    ["Vacation", result.vacationHours, plan.vacation.taken],
     ["Sick leave", inputs.sickHours, plan.sick.taken],
     ["H&S training", inputs.hsHours, hs.taken],
     ["Administration", inputs.adminHours, admin.taken],
@@ -74,7 +80,7 @@ export function applySimpleInputs(plan: AnnualPlan): AnnualPlan {
     holidayAllowanceDays: inputs.holidayDays,
     vacation: {
       taken: plan.vacation.taken,
-      future: inputs.vacationHours - plan.vacation.taken,
+      future: inputs.vacationHours - plan.vacation.taken / proration(plan),
     },
     sick: {
       taken: plan.sick.taken,
